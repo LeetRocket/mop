@@ -2,7 +2,7 @@ require 'matrix'
 
 class Simplex
   
-  def initialize(a, b, c, x, jb, v=true)
+  def initialize(a, b, c, x, jb, v=false)
     @A = a
     @m = @A.row_size
     @n = @A.column_size
@@ -15,12 +15,12 @@ class Simplex
     @Ab = base(@A, @Jb)
     @B = @Ab.inv
     
-    @v = v
+    @v = v #verbosity
   end
   
-  def iteration
+  def iterate
     for i in 1...200
-      puts "\n----------\nIteration #{i}\n----------\n"
+      puts "\n----------\nIteration #{i}\n----------\n"  if @v
       puts "cost = #{(@c.covector * @x)[0]}\n\n"
       
       f1
@@ -42,10 +42,10 @@ class Simplex
   end
   
   def f1
-    puts "\n>> Phase 1" if @v
-    puts "Jb = #{@Jb.inspect}"
-    puts "B = #{@B.inspect}"
-    puts "x = #{@x.inspect}"
+    puts "\n>> Phase 1"  if @v
+    puts "Jb = #{@Jb.inspect}"  if @v
+    puts "B = #{@B.inspect}"  if @v
+    puts "x = #{@x.inspect}"  if @v
     @cb = base(@c.covector, @Jb)
     @u = @cb * @B
     puts "u' = #{@u.inspect}" if @v
@@ -53,12 +53,12 @@ class Simplex
     @d = []
     for j in @Jn
       @d[j] = (@u * @A.column(j))[0] - @c[j]
-      puts "^[#{j}] = #{@d[j]}" if @v
+      puts "^[#{j}] = #{@d[j]}"  if @v
     end
   end
   
   def f2
-    puts "\n>> Phase 2"
+    puts "\n>> Phase 2"  if @v
     v = true
     d_min = 0
     for j in @Jn
@@ -67,14 +67,14 @@ class Simplex
         @j0 = j
       end
     end
-    puts "Not optimal" unless v
+    puts "Not optimal"  if @v
     return v
   end
   
   def f3
-    puts "\n>> Phase 3"
-    puts "j0 = #{@j0}"
-    puts "^[j0] = #{@d[@j0]}"
+    puts "\n>> Phase 3"  if @v
+    puts "j0 = #{@j0}"  if @v
+    puts "^[j0] = #{@d[@j0]}"  if @v
     @z = @B * @A.column(@j0)
     v = true
     @s = 0
@@ -90,19 +90,19 @@ class Simplex
         end
       end
     }
-    puts "function is limited" unless v
+    puts "function is limited"  if @v
 
     return v
   end
   
   def f4
-    puts "\n>> Phase 4"
-    puts "theta0 = #{@t0}"
-    puts "s = #{@s}"
+    puts "\n>> Phase 4"  if @v
+    puts "theta0 = #{@t0}"  if @v
+    puts "s = #{@s}"  if @v
   end
   
   def f5
-    puts "\n>> Phase 5"
+    puts "\n>> Phase 5"  if @v
     x = []
     @J.each do |j|
       if @j0 == j
@@ -114,18 +114,18 @@ class Simplex
       end
     end
     @x = Vector.elements x
-    puts "new x = #{@x.inspect}"
+    puts "new x = #{@x.inspect}"  if @v
     @Jb.delete_at @s
     @Jb.push @j0
     @Jb.sort!
-    puts "new Jb = Jb \\ js U j0 = #{@Jb.inspect}"
+    puts "new Jb = Jb \\ js U j0 = #{@Jb.inspect}"  if @v
     @Jn = @J - @Jb
   end
   
   def f6
-    puts "\n>> Phase 6"
+    puts "\n>> Phase 6"  if @v
     @B = base(@A, @Jb).inv
-    puts "new B = #{@B}"
+    puts "new B = #{@B}"  if @v
   end
   
   def base(mx, jb)
@@ -170,4 +170,4 @@ end
  jb = [0, 1, 2]
   
 s = Simplex.new a, b, c, x, jb
-s.iteration
+s.iterate
